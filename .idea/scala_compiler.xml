@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ScalaCompilerConfiguration">
+    <option name="separateProdTestSources" value="true" />
+    <profile name="sbt 1" modules="summer,summer.main,summer.test,zio-like-framework" />
+    <profile name="sbt 2" modules="zio-like-framework.main,zio-like-framework.test">
+      <option name="higherKinds" value="true" />
+      <option name="deprecationWarnings" value="true" />
+      <option name="uncheckedWarnings" value="true" />
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-Ymacro-annotations" />
+        <parameter value="-P:kind-projector:underscore-placeholders" />
+      </parameters>
+      <plugins>
+        <plugin path="C:\Users\zhiwi\AppData\Local\Coursier\Cache\v1\https\repo1.maven.org\maven2\org\typelevel\kind-projector_2.13.16\0.13.3\kind-projector_2.13.16-0.13.3.jar" />
+        <plugin path="C:\Users\zhiwi\AppData\Local\Coursier\Cache\v1\https\repo1.maven.org\maven2\com\olegpy\better-monadic-for_2.13\0.3.1\better-monadic-for_2.13-0.3.1.jar" />
+      </plugins>
+    </profile>
+  </component>
+</project>
