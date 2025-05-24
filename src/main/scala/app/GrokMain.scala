@@ -4,7 +4,7 @@ import cats.mtl.{Ask, Local}
 import cats.syntax.all._
 import cats.Applicative
 import cats.effect._
-import cats.effect.kernel.MonadCancelThrow
+import cats.effect.kernel.Sync
 
 // Core type classes for the framework
 trait Module[F[_]] {
@@ -47,20 +47,20 @@ object UserService {
 case class AppContext(config: String)
 
 // Implementations
-class LiveLogger[F[_]: MonadCancelThrow] extends Logger[F] {
+class LiveLogger[F[_]: Sync] extends Logger[F] {
   def info(msg: String): F[Unit] =
-    MonadCancelThrow[F].pure(println(s"INFO: $msg"))
+    Sync[F].pure(println(s"INFO: $msg"))
   def error(msg: String): F[Unit] =
-    MonadCancelThrow[F].pure(println(s"ERROR: $msg"))
+    Sync[F].pure(println(s"ERROR: $msg"))
 }
 
-class LiveDatabase[F[_]: MonadCancelThrow] extends Database[F] {
+class LiveDatabase[F[_]: Sync] extends Database[F] {
   def query(sql: String): F[List[String]] =
-    MonadCancelThrow[F].pure(List(s"Result for $sql"))
+    Sync[F].pure(List(s"Result for $sql"))
 }
 
 class LiveUserService[F[_]](implicit
-                            F: MonadCancelThrow[F],
+                            F: Sync[F],
                             logger: Logger[F],
                             database: Database[F],
                             ask: Ask[F, AppContext]
@@ -69,22 +69,22 @@ class LiveUserService[F[_]](implicit
     for {
       ctx <- ask.ask
       _ <- logger.info(s"Fetching user $id with config ${ctx.config}")
-      result <- database.query(s"SELECT * FROM users WHERE id = $id")
+      result <- database.query(s"SELECT * FROM ${ctx.config} WHERE id = $id")
       _ <- logger.info(s"Query result: $result")
     } yield result.headOption
 }
 
 // Module composition
-class AppModule[F[_]: Sync: MonadCancelThrow](ctx: AppContext) extends Module[F] {
+class AppModule[F[_]: Sync](ctx: AppContext) extends Module[F] {
   require(ctx != null, "AppContext cannot be null")
 
   implicit val logger: Logger[F] = new LiveLogger[F]
   implicit val database: Database[F] = new LiveDatabase[F]
 
   implicit val askContext: Ask[F, AppContext] = new Ask[F, AppContext] {
-    def ask[E2 >: AppContext]: F[E2] = MonadCancelThrow[F].pure(ctx)
+    def ask[E2 >: AppContext]: F[E2] = Sync[F].pure(ctx)
     def local[A](fa: F[A])(f: AppContext => AppContext): F[A] = fa
-    override def applicative: Applicative[F] = MonadCancelThrow[F]
+    override def applicative: Applicative[F] = Sync[F]
   }
 
   implicit val userService: UserService[F] = new LiveUserService[F]
@@ -94,7 +94,7 @@ class AppModule[F[_]: Sync: MonadCancelThrow](ctx: AppContext) extends Module[F]
 
 // Program using the framework
 object GrokMain extends IOApp {
-  def program[F[_]: MonadCancelThrow: UserService: Logger]: F[Unit] = for {
+  def program[F[_]: Sync: UserService: Logger]: F[Unit] = for {
     user <- UserService[F].findUser("123")
     _ <- Logger[F].info(s"Found user: $user")
   } yield ()
