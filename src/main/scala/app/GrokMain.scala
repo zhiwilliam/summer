@@ -92,6 +92,12 @@ class AppModule[F[_]: Sync](ctx: AppContext) extends Module[F] {
   def provide[A](fa: F[A]): F[A] = fa
 }
 
+object AppModule {
+  def apply[F[_]: Sync](ctx: AppContext): Resource[F, AppModule[F]] =
+    Resource.pure(new AppModule[F](ctx))
+}
+
+
 // Program using the framework
 object GrokMain extends IOApp {
   def program[F[_]: Sync: UserService: Logger]: F[Unit] = for {
@@ -99,15 +105,17 @@ object GrokMain extends IOApp {
     _ <- Logger[F].info(s"Found user: $user")
   } yield ()
 
+
   override def run(args: List[String]): IO[ExitCode] = {
     val ctx = AppContext("production")
-    val module = new AppModule[IO](ctx)
-    import module._
-    Logger[IO].info(s"Module created with ctx: $ctx").flatMap { _ =>
-      program[IO]
-        .guarantee(Logger[IO].info("Program completed"))
-        .as(ExitCode.Success)
-        .handleErrorWith(e => Logger[IO].error(s"Error: $e").as(ExitCode.Error))
+    AppModule[IO](ctx).use { module =>
+      import module._
+      Logger[IO].info(s"Module created with ctx: $ctx").flatMap { _ =>
+        program[IO]
+          .guarantee(Logger[IO].info("Program completed"))
+          .as(ExitCode.Success)
+          .handleErrorWith(e => Logger[IO].error(s"Error: $e").as(ExitCode.Error))
+      }
     }
   }
 }
