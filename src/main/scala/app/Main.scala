@@ -17,7 +17,7 @@ object Main extends IOApp {
   implicit def makeAppEnv[F[_]: Sync]: Make[F, AppEnv[F]] =
     Make.make2[F, Logging[F], Database[F], AppEnv[F]](AppEnv(_, _))
 
-  def program[F[_]: Monad: MonadLogging: MonadDatabase]: F[Unit] = for {
+  def program[F[_]: Sync: MonadLogging: MonadDatabase]: F[Unit] = for {
     _ <- MonadLogging[F].info("Starting the program...")
     res <- MonadDatabase[F].query("SELECT * FROM users")
     _ <- MonadLogging[F].info(s"Got: $res")
