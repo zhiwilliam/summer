@@ -12,6 +12,7 @@ lazy val root = (project in file("."))
       "org.typelevel" %% "cats-core"      % "2.13.0",
       "org.typelevel" %% "cats-effect"    % "3.6.1",
       "org.typelevel" %% "cats-mtl"       % "1.5.0",   // MTL 类型类
+      "com.chuusai" %% "shapeless" % "2.3.12",
       "org.typelevel" %% "kind-projector" % "0.13.3" cross CrossVersion.full
     ),
     scalacOptions ++= Seq(

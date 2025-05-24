@@ -159,6 +159,12 @@ object AppModule {
 
 // Program using the framework
 object GrokMain extends IOApp {
+
+  class CustomLogger[F[_]: Sync] extends Logger[F] {
+    def info(msg: String): F[Unit] = Sync[F].delay(println(s"[CUSTOM] $msg"))
+    def error(msg: String): F[Unit] = Sync[F].delay(println(s"[CUSTOM ERROR] $msg"))
+  }
+
   def program[F[_]: Sync: UserService: Logger]: F[Unit] = for {
     user <- UserService[F].findUser("123")
     _ <- Logger[F].info(s"Found user: $user")
@@ -166,7 +172,7 @@ object GrokMain extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
     val ctx = AppContext("production")
-    AppModule[IO](ctx).use { module =>
+    AppModule[IO](ctx, overrideLogger = Some(new CustomLogger[IO])).use { module =>
       import module._
       Logger[IO].info(s"Starting application with ctx: $ctx").flatMap { _ =>
         program[IO]
