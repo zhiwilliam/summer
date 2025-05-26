@@ -18,6 +18,10 @@ trait UserService[F[_]] {
   def doSomething: F[Unit]
 }
 
+trait Module[F[_], A] {
+  def make: Resource[F, A]
+}
+
 final case class Layer[F[_], A](resource: Resource[F, A]) {
   def map[B](f: A => B): Layer[F, B] = Layer(resource.map(f))
   def flatMap[B](f: A => Layer[F, B]): Layer[F, B] =
@@ -31,16 +35,14 @@ trait ZLayerLike[F[_], A] {
 trait AutoLayer[F[_], A] {
   def make: Layer[F, A]
 }
-import macros.Module
 object Logger {
-  @macros.Module
   def makeResource[F[_] : Sync]: Resource[F, Logger[F]] =
     Resource.pure(new Logger[F] {
       def info(msg: String): F[Unit] = Sync[F].delay(println(s"[info] $msg"))
     })
 
-//  given loggerModule[F[_]: Sync]: module.Module[F, Logger[F]] with
-//    def make: Resource[F, Logger[F]] = makeResource[F]
+  given loggerModule[F[_]: Sync]: module.Module[F, Logger[F]] with
+    def make: Resource[F, Logger[F]] = makeResource[F]
 }
 
 object Config {
@@ -144,9 +146,7 @@ object AutoLayer {
             acc.flatMap(t1 => next.map(t2 => t1 ++ Tuple1(t2)))
           }
   }
-
 }
-
 
 final case class AppEnv(
                          logger: Logger[IO],
