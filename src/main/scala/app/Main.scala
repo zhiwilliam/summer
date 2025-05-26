@@ -39,8 +39,8 @@ object Logger {
       def info(msg: String): F[Unit] = Sync[F].delay(println(s"[info] $msg"))
     })
 
-  //  given loggerModule[F[_]: Sync]: module.Module[F, Logger[F]] with
-  //    def make: Resource[F, Logger[F]] = makeResource[F]
+//  given loggerModule[F[_]: Sync]: module.Module[F, Logger[F]] with
+//    def make: Resource[F, Logger[F]] = makeResource[F]
 }
 
 object Config {
