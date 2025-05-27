@@ -1,5 +1,6 @@
 package app.services.impls.auth
 
+import app.services.impls.auth.Jwt.secretKey
 import cats.data.*
 import cats.effect.*
 import cats.implicits.*
@@ -15,9 +16,7 @@ import org.http4s.implicits.http4sHeaderSyntax
 case class AuthedUser(email: String)
 
 object JwtAuth {
-
-  private val secretKey = "your_super_secret_key" // 与 Jwt.scala 中保持一致
-
+  
   val authUser: Kleisli[[X] =>> OptionT[IO, X], Request[IO], AuthedUser] =
     Kleisli { req =>
       OptionT {

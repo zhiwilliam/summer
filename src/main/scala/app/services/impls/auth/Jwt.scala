@@ -5,7 +5,7 @@ import java.time.Instant
 import java.util.Date
 
 object Jwt {
-  private val secretKey = "your_super_secret_key"
+  val secretKey = "xmdkayelvm632549235&*^2$)"
 
   def generate(email: String): String = {
     val claim = JwtClaim(
